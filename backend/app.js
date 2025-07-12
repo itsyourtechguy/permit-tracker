@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
+const permitRoutes = require('./routes/permit');
 
 // Load env vars
 dotenv.config();
@@ -18,6 +19,7 @@ app.use(morgan('dev'));
 
 // Routes
 app.use('/api/auth', authRoutes); // Auth routes
+app.use('/api', permitRoutes);
 
 // Test route
 app.get('/', (req, res) => {
