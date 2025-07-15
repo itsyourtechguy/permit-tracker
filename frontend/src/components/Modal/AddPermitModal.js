@@ -1,22 +1,39 @@
-import React, { useState } from 'react';
-import useUserStore from '../../store/useUserStore';
-import Modal from './Modal';
+import React, { useState } from "react";
+import Modal from "./Modal";
+import useUserStore from "../../store/useUserStore";
+import api from "../../../src/utils/api";
 
 const AddPermitModal = () => {
-  const { isAddPermitModalOpen, closeAddPermitModal } = useUserStore();
-  const [country, setCountry] = useState('');
-  const [permitType, setPermitType] = useState('');
-  const [deadline, setDeadline] = useState('');
+  const { isAddPermitModalOpen, closeAddPermitModal, setPermits } =
+    useUserStore();
 
-  const handleSubmit = (e) => {
+  const [country, setCountry] = useState("");
+  const [permitType, setPermitType] = useState("");
+  const [deadline, setDeadline] = useState("");
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ country, permitType, deadline });
-    alert('Permit added!');
-    closeAddPermitModal();
+
+    try {
+      const token = useUserStore.getState().user?.token;
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      await api.post("/permits", { country, permitType, deadline });
+      const permitsRes = await api.get("/permits");
+      setPermits(permitsRes.data);
+      closeAddPermitModal();
+    } catch (err) {
+      alert("Failed to add permit");
+      console.error(err);
+    }
   };
 
   return (
-    <Modal isOpen={isAddPermitModalOpen} onClose={closeAddPermitModal} title="Add Permit">
+    <Modal
+      isOpen={isAddPermitModalOpen}
+      onClose={closeAddPermitModal}
+      title="Add Permit"
+    >
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label className="block mb-2">Country</label>
@@ -48,7 +65,10 @@ const AddPermitModal = () => {
             required
           />
         </div>
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+        <button
+          type="submit"
+          className="bg-blue-500 text-white px-4 py-2 rounded w-full"
+        >
           Save Permit
         </button>
       </form>
