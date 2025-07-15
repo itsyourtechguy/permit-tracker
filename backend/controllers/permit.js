@@ -7,20 +7,7 @@ const mongoose = require('mongoose');
 // @route   GET /api/permits
 exports.getPermits = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-
-    if (!token) {
-      return res.status(401).json({ message: "Not authorized" });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const permits = await Permit.find({ user: user._id }).sort({ deadline: 1 });
+    const permits = await Permit.find({ user: req.user._id }).sort({ deadline: 1 });
 
     res.json(permits);
   } catch (err) {
@@ -35,21 +22,8 @@ exports.addPermit = async (req, res) => {
   const { country, permitType, deadline } = req.body;
 
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-
-    if (!token) {
-      return res.status(401).json({ message: "Not authorized" });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const permit = await Permit.create({
-      user: user._id,
+      user: req.user._id,
       country,
       permitType,
       deadline,
@@ -58,7 +32,7 @@ exports.addPermit = async (req, res) => {
     res.status(201).json(permit);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -66,19 +40,6 @@ exports.addPermit = async (req, res) => {
 // @route   DELETE /api/permits/:id
 exports.deletePermit = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-
-    if (!token) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
     const permitId = req.params.id;
 
     // Validate ObjectId format
@@ -92,12 +53,12 @@ exports.deletePermit = async (req, res) => {
       return res.status(404).json({ message: 'Permit not found' });
     }
 
-    // Check ownership
-    if (permit.user.toString() !== user._id.toString()) {
+    // Make sure logged-in user owns the permit
+    if (permit.user.toString() !== req.user._id.toString()) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
-    // Delete the permit
+    // Delete permit from DB
     await Permit.findByIdAndDelete(permitId);
 
     res.json({ success: true });
@@ -111,19 +72,6 @@ exports.deletePermit = async (req, res) => {
 // @route   PUT /api/permits/:id
 exports.updatePermit = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-
-    if (!token) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
     const permitId = req.params.id;
 
     if (!mongoose.Types.ObjectId.isValid(permitId)) {
@@ -136,15 +84,16 @@ exports.updatePermit = async (req, res) => {
       return res.status(404).json({ message: 'Permit not found' });
     }
 
-    if (permit.user.toString() !== user._id.toString()) {
+    // Check ownership
+    if (permit.user.toString() !== req.user._id.toString()) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
-    const updatedPermit = await Permit.findByIdAndUpdate(
-      permitId,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    // Update permit with new data
+    const updatedPermit = await Permit.findByIdAndUpdate(permitId, req.body, {
+      new: true,
+      runValidators: true,
+    });
 
     res.json(updatedPermit);
   } catch (err) {

@@ -1,18 +1,20 @@
 const express = require('express');
-const { getPermits, addPermit, deletePermit, updatePermit } = require('../controllers/permit');
+const { protect } = require('../middleware/authMiddleware');
+const {
+  getPermits,
+  addPermit,
+  deletePermit,
+  updatePermit,
+} = require('../controllers/permit');
 
 const router = express.Router();
 
-// @route   GET /api/permits
-router.get('/permits', getPermits);
+// All permit routes are protected
+router.route('/permits').get(protect, getPermits).post(protect, addPermit);
 
-// @route   POST /api/permits
-router.post('/permits', addPermit);
-
-// @route DELETE /api/permits/:id
-router.delete('/permits/:id', deletePermit);
-
-// @route UPDATE /api/permits/:id
-router.put('/permits/:id', updatePermit);
+router
+  .route('/permits/:id')
+  .put(protect, updatePermit)
+  .delete(protect, deletePermit);
 
 module.exports = router;
