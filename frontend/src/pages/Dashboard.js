@@ -3,7 +3,7 @@ import api from "../utils/api";
 import useUserStore from "../store/useUserStore";
 
 const Dashboard = () => {
-  const { openAddPermitModal, permits, setPermits } = useUserStore();
+  const { openAddPermitModal, openEditPermitModal, permits, setPermits } = useUserStore();
 
   useEffect(() => {
     const fetchPermits = async () => {
@@ -62,12 +62,20 @@ const Dashboard = () => {
                 <strong>{permit.permitType}</strong> for {permit.country} —
                 Deadline: {new Date(permit.deadline).toLocaleDateString()}
               </div>
-              <button
-                onClick={() => handleDelete(permit._id)}
-                className="text-red-500 hover:text-red-700"
-              >
-                ❌ Delete
-              </button>
+              <div className="space-x-2">
+                <button
+                  onClick={() => openEditPermitModal(permit)}
+                  className="text-blue-500 hover:text-blue-700"
+                >
+                  ✏️ Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(permit._id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  ❌ Delete
+                </button>
+              </div>
             </li>
           ))
         ) : (

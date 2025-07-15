@@ -106,3 +106,49 @@ exports.deletePermit = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// @desc    Update a permit
+// @route   PUT /api/permits/:id
+exports.updatePermit = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const permitId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(permitId)) {
+      return res.status(400).json({ message: 'Invalid permit ID' });
+    }
+
+    const permit = await Permit.findById(permitId);
+
+    if (!permit) {
+      return res.status(404).json({ message: 'Permit not found' });
+    }
+
+    if (permit.user.toString() !== user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    const updatedPermit = await Permit.findByIdAndUpdate(
+      permitId,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    res.json(updatedPermit);
+  } catch (err) {
+    console.error('Error updating permit:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

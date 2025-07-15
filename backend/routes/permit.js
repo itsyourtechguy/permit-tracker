@@ -1,5 +1,5 @@
 const express = require('express');
-const { getPermits, addPermit, deletePermit } = require('../controllers/permit');
+const { getPermits, addPermit, deletePermit, updatePermit } = require('../controllers/permit');
 
 const router = express.Router();
 
@@ -11,5 +11,8 @@ router.post('/permits', addPermit);
 
 // @route DELETE /api/permits/:id
 router.delete('/permits/:id', deletePermit);
+
+// @route UPDATE /api/permits/:id
+router.put('/permits/:id', updatePermit);
 
 module.exports = router;

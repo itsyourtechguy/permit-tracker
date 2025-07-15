@@ -5,6 +5,7 @@ import AddPermitModal from "./components/Modal/AddPermitModal";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import AuthModal from "./components/Modal/AuthModal";
+import EditPermitModal from "./components/Modal/EditPermitModal";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Footer />
         <AuthModal />
         <AddPermitModal />
+        <EditPermitModal />
       </div>
     </Router>
   );
